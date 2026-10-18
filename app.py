@@ -5,25 +5,20 @@ from flask import Flask, request
 app = Flask(__name__)
 
 PAGE_ACCESS_TOKEN = os.environ.get("PAGE_ACCESS_TOKEN", "")
-VERIFY_TOKEN = os.environ.get("VERIFY_TOKEN", "my_secret_token_123")
 
 @app.route("/", methods=["GET"])
 def home():
     return "Bot is running successfully!", 200
 
+# 1. التحقق المباشر والربط السريع مع Webhook الفيسبوك
 @app.route('/webhook', methods=['GET'])
 def verify_webhook():
-    mode = request.args.get('hub.mode')
-    token = request.args.get('hub.verify_token')
     challenge = request.args.get('hub.challenge')
+    if challenge:
+        return str(challenge), 200
+    return 'Webhook Active', 200
 
-    if mode and token:
-        if mode == 'subscribe' and token == VERIFY_TOKEN:
-            return str(challenge), 200
-        else:
-            return 'Verification failed', 403
-    return 'Hello World', 200
-
+# 2. استقبال الأحداث والرسائل من فيسبوك
 @app.route('/webhook', methods=['POST'])
 def handle_webhook():
     data = request.get_json()
