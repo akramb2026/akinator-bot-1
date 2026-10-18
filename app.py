@@ -4,7 +4,7 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-PAGE_ACCESS_TOKEN = os.environ.get("PAGE_ACCESS_TOKEN", "")
+PAGE_ACCESS_TOKEN = os.environ.get("PAGE_ACCESS_TOKEN")
 VERIFY_TOKEN = os.environ.get("VERIFY_TOKEN", "my_secret_token_123")
 
 @app.route("/", methods=["GET"])
@@ -30,8 +30,11 @@ def handle_webhook():
     if data and data.get("object") == "page":
         for entry in data.get("entry", []):
             for messaging_event in entry.get("messaging", []):
-                sender_id = messaging_event.get("sender", {}).get("id")
-                print(f"Received message from {sender_id}")
+                if messaging_event.get("message"):
+                    sender_id = messaging_event["sender"]["id"]
+                    message_text = messaging_event["message"].get("text", "")
+                    print(f"Received message from {sender_id}")
+                    
     return "EVENT_RECEIVED", 200
 
 if __name__ == "__main__":
