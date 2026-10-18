@@ -31,8 +31,31 @@ def handle_webhook():
         for entry in data.get("entry", []):
             for messaging_event in entry.get("messaging", []):
                 sender_id = messaging_event.get("sender", {}).get("id")
-                print(f"Received message from {sender_id}")
+                
+                # التحقق إذا كانت رسالة نصية مرسلة من المستخدم
+                if sender_id and messaging_event.get("message") and messaging_event["message"].get("text"):
+                    message_text = messaging_event["message"]["text"]
+                    print(f"Received message from {sender_id}: {message_text}")
+                    
+                    # إرسال رد تلقائي من المارد السحري
+                    send_message(sender_id, "أهلاً بك! أنا المارد السحري 🧞‍♂️، هل نبدأ اللعبة؟")
+                    
     return "EVENT_RECEIVED", 200
+
+def send_message(recipient_id, text_message):
+    if not PAGE_ACCESS_TOKEN:
+        print("Error: PAGE_ACCESS_TOKEN is missing!")
+        return
+        
+    url = f"https://graph.facebook.com/v21.0/me/messages?access_token={PAGE_ACCESS_TOKEN}"
+    payload = {
+        "recipient": {"id": recipient_id},
+        "message": {"text": text_message}
+    }
+    headers = {"Content-Type": "application/json"}
+    
+    response = requests.post(url, json=payload, headers=headers)
+    print(f"Send message response: {response.status_code}, {response.text}")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
